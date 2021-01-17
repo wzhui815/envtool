@@ -1,48 +1,28 @@
 package main
 
 import (
-	"context"
+	"envtool/utils"
 	"fmt"
+	"os"
 
-	"github.com/opencontainers/go-digest"
-
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
+	log "github.com/sirupsen/logrus"
 )
 
+func init() {
+	// Log as JSON instead of the default ASCII formatter.
+	log.SetFormatter(&log.JSONFormatter{})
+
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	log.SetOutput(os.Stdout)
+
+	// Only log the warning severity or above.
+	// log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
+}
+
 func main() {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		panic(err)
-	}
-
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
-	if err != nil {
-		panic(err)
-	}
-
-	for _, container := range containers {
-		fmt.Printf("%s %s\n", container.ID[:10], container.Image)
-	}
-
-	images, err := cli.ImageList(context.Background(), types.ImageListOptions{})
-	for _, image := range images {
-		fmt.Printf("%s %s\n", image.ID, image.RepoTags[0])
-
-		imageSpec, _, err := cli.ImageInspectWithRaw(context.Background(), image.ID)
-		if err != nil {
-			panic(err)
-		}
-
-		chainID := ""
-		for _, layer := range imageSpec.RootFS.Layers {
-			if chainID == "" {
-				chainID = layer
-			} else {
-				chainID = digest.FromString(chainID + " " + layer).String()
-			}
-			fmt.Printf(">>> ChainID: %s\n", chainID)
-		}
-	}
+	fmt.Println("Test..")
+	utils.ListContainers()
 
 }
